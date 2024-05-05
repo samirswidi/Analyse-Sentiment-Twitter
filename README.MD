@@ -12,5 +12,13 @@ Notice :
   ♦ cliquer sur Search packages ( maven coordinates)
   ♦ dans liste déroulante choisir maven central
   ♦ dans la zone de recherche taper org.twitter4j et   choisir twitter4j-core
-
 4) Vous pouvez exécuter maintenat le code
+5) Lien pour démo: https://www.youtube.com/watch?v=6YDpBHFYeTE
+---------------------------------------------------------------------------
+
+Pour utiliser spark-shell
+1) modifier cette ligne 
+   var tweets_csv = spark.read.format("csv").schema(schema).load("G:\\votre emplacement de fichier tweets1.csv\\tweets1.csv")
+2) ouvrir invite de commande et taper spark-shell
+3) :load G:/emplacement de votre code fichier scala/sent.scala
+4) Lien pour démo: https://www.youtube.com/watch?v=U2DhCi98w5c
