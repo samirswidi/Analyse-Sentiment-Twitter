@@ -41,18 +41,18 @@ val data = tweets_csv.select($"SentimentText", col("Sentiment").cast("Int").as("
 // Afficher les cinq premières lignes du DataFrame
 val Array(trainingData, testingData) = data.randomSplit(Array(0.7, 0.3))
 
-// Count the rows in each split
+// Compte les lignes dans chaque division
 
 val trainRows = trainingData.count()
 val testRows = testingData.count()
 
 
-// Calculate the proportions for the pie chart
+// Calculer les proportions du graphe Pie
 val totalRows = trainRows + testRows
 val trainPercentage = trainRows.toDouble / totalRows * 100
 val testPercentage = testRows.toDouble / totalRows * 100
 
-// Display the proportions
+// Afficher les proportions
 println(s"Training Data: $trainPercentage%")
 println(s"Testing Data: $testPercentage%")
 
@@ -83,23 +83,23 @@ println("Training data rows: " + trainRows + "; Testing data rows: " + testRows)
 
 
 
-// COMMAND ----------
 
-
-// Create Tokenizer
+// creation Tokenizer :  (un outil de tokenisation) qui transforme le texte en une séquence de tokens (mots).
 val tokenizer = new Tokenizer().setInputCol("SentimentText").setOutputCol("SentimentWords")
 
 
 // Appliquer le tokenizer aux données d'entraînement
   // Tokenize training data
-  val tokenizedTrain = tokenizer.transform(trainingData)
+  val tokenizedTrain = tokenizer.transform(trainingData)    //Applique le tokenizer aux données d'entraînement (trainingData) pour obtenir les tokens (SentimentWords).
 
   // Limit and show results (without truncation, check Spark version for specific method)
   val limitedTrain = tokenizedTrain.limit(5)
   limitedTrain.show(false) // Check your Spark version for the appropriate argument
   val swr = new StopWordsRemover().setInputCol(tokenizer.getOutputCol).setOutputCol("MeaningfulWords")
+  //Cette ligne crée un outil de suppression des mots vides (StopWordsRemover) qui supprime les mots inutiles (comme "et", "ou", "le") des tokens.
 
    val SwRemovedTrain = swr.transform(tokenizedTrain)
+   //Applique le StopWordsRemover aux données d'entraînement tokenisées (tokenizedTrain) pour obtenir les tokens sans les mots vides.
    SwRemovedTrain.limit(5).show(false)
 
 
@@ -107,10 +107,11 @@ val tokenizer = new Tokenizer().setInputCol("SentimentText").setOutputCol("Senti
    val hashTF = new HashingTF()
   .setInputCol(swr.getOutputCol)
   .setOutputCol("features")
-
+//Crée un outil de transformation HashingTF qui convertit les tokens (MeaningfulWords) en caractéristiques numériques (vecteurs de caractéristiques).
 // Appliquer le HashingTF aux données d'entraînement
 val numericTrainData = hashTF.transform(SwRemovedTrain).select(
     $"label", $"MeaningfulWords", $"features")
+//Applique HashingTF aux données d'entraînement pour obtenir les caractéristiques numériques (features).
 
 // Afficher les résultats
 // Afficher les premières lignes du DataFrame numericTrainData
@@ -152,7 +153,7 @@ val html = s"""
 // Display the HTML using displayHTML
 displayHTML(html)
 
-// COMMAND ----------
+
 
 // Créer un modèle de régression logistique
 val lr = new LogisticRegression()
@@ -164,6 +165,11 @@ val lr = new LogisticRegression()
 // Entraîner le modèle
 val model = lr.fit(numericTrainData)
 
+//Type d'algorithme : La régression logistique est un algorithme de classification. Bien que son nom contienne "régression", 
+// elle est utilisée pour la classification binaire ou multiclasse.
+// Fonctionnalité : L'algorithme de régression logistique modélise la relation entre les caractéristiques d'entrée (colonne features) 
+// et une variable cible binaire ou catégorique (label) en utilisant une fonction logistique ou sigmoïde.
+// La sortie du modèle est la probabilité d'appartenir à une classe particulière.
 
 println("Entraînement terminé !")
 
@@ -228,23 +234,7 @@ displayHTML(html)
 
 
 
-// COMMAND ----------
 
-val meaningfulWordsRDD: RDD[(VertexId, String)] = SwRemovedTrain
-  .select("MeaningfulWords")
-  .rdd
-  .flatMap(row => row.getAs[Seq[String]]("MeaningfulWords"))
-  .distinct()
-  .zipWithUniqueId()
-  .map { case (word, id) => (id, word) }
-
-// Créer le graphe à partir des nœuds
- println("création d\'un graph ... dans 5 secondes \n")
-   Thread.sleep(5000)
-val graph: Graph[String, Null] = Graph(meaningfulWordsRDD, sc.emptyRDD[Edge[Null]])
-
-// Afficher les nœuds du graphe
-graph.vertices.collect().foreach(println)
 
 //graphe 
 import com.databricks.backend.daemon.driver.EnhancedRDDFunctions.displayHTML
@@ -298,8 +288,6 @@ displayHTML(html)
 
 
 
-
-// COMMAND ----------
 
 // Create a text input widget in Databricks
 dbutils.widgets.text("userInput", "", "Entrez le texte à prédire ou tapez '-1' pour quitter")
